@@ -32,6 +32,8 @@ def show_image(img, width=800):
 def determine_line(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
+    if x1 == x2:
+        x1 += 1
     a = (y2 - y1) / (x2 - x1)  # Hệ số góc của đường thẳng
     b = y1 - a * x1  # Sai số của đường thẳng
     return a, b
@@ -66,11 +68,12 @@ def draw_contour(img, contour):
 
 def determine_petri_dish(img):
     # tính histogram
+
     hist = cv2.calcHist([img], [0], None, [256], [0, 256])
     hist = np.squeeze(hist)
     smooth_hist = gaussian_filter(hist, sigma=2)
-    peeks, _ = find_peaks(-smooth_hist, prominence=1)
-    threshold_value = peeks[0]
+    peeks, _ = find_peaks(-smooth_hist, prominence=5)
+    threshold_value = peeks[0]+20
     img = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY)[1]
     img = cv2.Canny(img, 90, 200)
     show_image(img)
@@ -90,8 +93,7 @@ def kmeans_clustering(points, n_clusters=2):
 
 
 def determine_center_petri_dish(img):
-    path = get_path('new_data/MEA')
-    image = cv2.imread(path)
+
     height, width = img.shape
 
     a1, b1 = determine_line((0, 0), (width, height))
@@ -104,7 +106,7 @@ def determine_center_petri_dish(img):
 
     # làm tròn center_point
     center_point = (int(center_point[0]), int(center_point[1]))
-    img = cv2.circle(image, center_point, int(radius), (0, 0, 255), 2)
+    img = cv2.circle(img, center_point, int(radius), (0, 0, 255), 2)
 
     intersection_point = [[], []]
     for i in range(len(list_poins_contour)):
@@ -143,8 +145,10 @@ def determine_center_petri_dish(img):
     # tính bán kính của petri dish
     radius = np.linalg.norm(
         np.array(list_poins_contour[1][0]) - np.array((x, y)))
-    radius = int(np.around(radius)) - 50
+    radius = int(np.around(radius) - radius//10) 
     print("Bán kính:", radius)
+    img = cv2.circle(img, (x, y), int(radius), (0, 255, 0), 2)
+    show_image(img)
     # img = draw_point(img, (x, y))
     # img = cv2.circle(img, (x, y), int(radius), (0, 255, 0), 1)
 
@@ -212,48 +216,85 @@ def histogram_distance(img):
             y = int(center[1] + i * np.sin(angle * np.pi / 180))
             points_of_radius.append((x, y))
             intensity.append(img[y, x])
-        # image = cv2.imread(path)
-        # image = draw_point(image, points[178])
-        # show_image(image)
-        guassian_intensity = gaussian_filter(intensity, sigma=1)
 
+        gaussian_intensity = gaussian_filter(intensity, sigma=5)
         smooth_intensity = np.convolve(intensity, [1/3, 1/3, 1/3], mode='same')
-
         derivative = np.gradient(smooth_intensity)
 
         segments = []
         start_index = None
         segment_start = None
         for i in range(len(derivative)):
-            if derivative[i] > 2.5:
+            if derivative[i] > 2.:
                 if segment_start is None:
                     segment_start = i
             elif segment_start is not None:
                 # segments.append((segment_start, i))
                 long = i - segment_start
-                if long > 7:
+                if long > 5:
                     start_index = segment_start
                     break
                 segment_start = None
         if start_index is None:
             start_index = radius-1
-        # Tìm phân đoạn có chiều dài lớn nhất
-        # longest_segment = max(segments, key=lambda x: x[1] - x[0])
-
-        # # Xác định điểm bắt đầu có sự tăng liên tục đạo hàm dài nhất
-        # long_start = longest_segment[1] - longest_segment[0]
-        # start_index = 0 if radius < 12 else longest_segment[0]
+        #     peaks, _ = find_peaks(gaussian_intensity, prominence=10)
+        #     plt.plot(gaussian_intensity)
+        #     plt.plot(peaks, gaussian_intensity[peaks], "x")
+        #     plt.show()
         img = draw_point(img, points_of_radius[start_index])
-        # print(st
-        # art_index)
-        # plt.plot(smooth_intensity)
-        # plt.show()
-        # find peak
         distance.append(start_index)
         points_of_distance.append(points_of_radius[start_index])
 
     show_image(img)
-    # smooth distance
+    new_distance = [distance[0], distance[1]]
+    for i in range(2, 360):
+        if  new_distance[i-1] < 10 and abs(distance[i] - new_distance[i-1]) > 20:
+            new_distance.append(new_distance[i-1])
+            continue
+        # Cách xa rìa cũ
+        if abs(distance[i] - new_distance[i-1]) > 20:
+            # Nếu ở gần tâm
+            if distance[i]< 20:
+                new_distance.append(new_distance[i-1])
+                continue
+
+            is_colony = False
+            for j in range(7):
+                id = i+j
+                if id >= 360:
+                    id -= 360
+                if abs(distance[id] - new_distance[i-1]) < 30:
+                    is_colony = True
+                    break
+            if is_colony :
+                new_distance.append(new_distance[i-1])
+                points_of_distance[i] = (x,y)
+            else:
+                new_distance.append(distance[i])
+        else:
+            new_distance.append(distance[i])
+    # plot thành 2 biểu đồ để dễ nhìn
+    
+
+    plt.subplot(2, 1, 1)
+    plt.plot(distance)
+    plt.title('Original Distance')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(new_distance)
+    plt.title('Smoothed Distance')
+
+    plt.tight_layout()
+    plt.show()   
+    img2 = cv2.imread(path)
+    points_of_distance = []
+    for angle in range(360):
+        dist = radius - new_distance[angle]
+        x = int(center[0] + dist * np.cos(angle * np.pi / 180))
+        y = int(center[1] + dist * np.sin(angle * np.pi / 180))
+        points_of_distance.append((x, y))
+    
+    distance = new_distance
     # distance = np.convolve(distance, [1/3, 1/3, 1/3], mode='same')
     smooth_distance = gaussian_filter(distance, sigma=6)
     shift_smooth_distance = np.roll(np.array(smooth_distance), 180)
@@ -300,48 +341,62 @@ def histogram_distance(img):
         points_of_colony = []
         points_of_colony.append(points_of_distance[peak])
 
-        threshold_index_left = np.mod(peak - threshold_left//3, 360)
-        id_left = threshold_index_left
+        threshold_index_left = np.mod(peak - threshold_left//2, 360)
+        id_left = peak-1
         flag_out_of_index = False
         threshold_distance_bottom = smooth_distance[threshold_index_left]
         threshold_distance_top = smooth_distance[np.mod(
             threshold_index_left - threshold_left//2, 360)]
-        list_point = []
+        list_point_lower = []
+        list_point_upper = []
         while id_left > peak - threshold_left:
             if id_left < 0:
                 id_left += 360
                 flag_out_of_index = True
-            if threshold_distance_bottom < distance[id_left] < threshold_distance_top:
-                list_point.append(
+            if distance[id_left] < threshold_distance_bottom:
+                list_point_lower.append(
+                    (points_of_distance[id_left], distance[id_left]))
+            elif distance[id_left] < threshold_distance_top:
+                list_point_upper.append(
                     (points_of_distance[id_left], distance[id_left]))
             if flag_out_of_index:
                 id_left -= 360
             id_left -= 1
-        if len(list_point) > 0:
-            list_point.sort(key=lambda x: x[1])
-            points_of_colony.append(list_point[0][0])
+        if len(list_point_upper) > 0:
+            list_point_upper.sort(key=lambda x: x[1])
+            points_of_colony.append(list_point_upper[0][0])
+        elif len(list_point_lower) > 0:
+            list_point_lower.sort(key=lambda x: -x[1])
+            points_of_colony.append(list_point_lower[0][0])
 
-        threshold_index_right = np.mod(peak + threshold_right//3, 360)
-        id_right = threshold_index_right
+        threshold_index_right = np.mod(peak + threshold_right//2, 360)
+        id_right = peak+1
         flag_out_of_index = False
         threshold_distance_bottom = smooth_distance[threshold_index_right]
         threshold_distance_top = smooth_distance[np.mod(
             threshold_index_right + threshold_right//2, 360)]
-        list_point = []
+        list_point_lower = []
+        list_point_upper = []
         while id_right < peak + threshold_right:
             if id_right >= 360:
                 id_right -= 360
                 flag_out_of_index = True
-            if threshold_distance_bottom < distance[id_right] < threshold_distance_top:
-                list_point.append(
+            if distance[id_right] < threshold_distance_bottom:
+                list_point_lower.append(
+                    (points_of_distance[id_right], distance[id_right]))
+            elif distance[id_right] < threshold_distance_top:
+                list_point_upper.append(
                     (points_of_distance[id_right], distance[id_right]))
             if flag_out_of_index:
                 id_right += 360
             id_right += 1
 
-        if len(list_point) > 0:
-            list_point.sort(key=lambda x: x[1])
-            points_of_colony.append(list_point[0][0])
+        if len(list_point_upper) > 0:
+            list_point_upper.sort(key=lambda x: x[1])
+            points_of_colony.append(list_point_upper[0][0])
+        elif len(list_point_lower) > 0:
+            list_point_lower.sort(key=lambda x: -x[1])
+            points_of_colony.append(list_point_lower[0][0])
 
         colonies.append(points_of_colony)
     print("Point của nấm:", colonies)
@@ -385,10 +440,13 @@ def histogram_distance(img):
         masked_image = cv2.bitwise_and(image, mask)
         masked_image = masked_image[center[1]-radius:center[1] +
                                     radius, center[0]-radius:center[0]+radius]
+        # write image
+        image_name = path.split('/')[-1].split('_')[0] + '_' + str(i) + '.jpg'
+        # cv2.imwrite('colonies/' + image_name, masked_image)
         show_image(masked_image)
 
 
-path = get_path('new_data/MEA/rev', 2)
+path = get_path('new_data/YES/ob', 28)
 
 
 def main():
