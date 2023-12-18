@@ -1,0 +1,17 @@
+- Tổng số lượng ảnh: 61
+- Có 13 nấm nhiều hơn 1 ảnh : 
+	+ Freii: 3
+	+ Mononematosum: 2
+	+ Eupenicillium Crustaceum: 2
+	+ Nalgiovense: 3
+	+ Entromorphobium: 3
+	+ Flavigenum: 2
+	+ Expansum: 2
+	+ Polonicum: 2
+	+ Griseofulvum: 2
+	+ Radicicola: 2
+	+ Nordicum: 2
+	+ Formosanum: 2
+	+ Ulaiense: 2
+
+Tất cả nấm đều được nuôi cấy trong môi trường MEA

@@ -1,0 +1,16 @@
+- Tổng số lượng ảnh: 61
+- Có 12 nấm nhiều hơn 1 ảnh : 
+	+ Formosanum: 2
+	+ Expansum: 3
+	+ Freii: 3
+	+ Eupenicillium Crustaceum: 2
+	+ Griseofulvum: 2
+	+ Flavigenum: 2
+	+ Nalgiovense: 3
+	+ Polonicum: 3
+	+ Entromorphobium: 2
+	+ Mononematosum: 2
+	+ Nordicum: 2
+	+ Radicicola: 2
+
+Tất cả nấm đều được nuôi cấy trong môi trường DG18

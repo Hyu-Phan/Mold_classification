@@ -1,0 +1,19 @@
+- Tổng số lượng ảnh: 62
+- Có 15 nấm nhiều hơn 1 ảnh : 
+	+ Formosanum: 2
+	+ Gladioli: 2
+	+ Eupenicillium Crustaceum: 2
+	+ Expansum: 2
+	+ Mononematosum: 2
+	+ Nordicum: 2
+	+ Lumpii: 2
+	+ Nalgiovense: 3
+	+ Eupenicillium Tularense: 2
+	+ Entromorphobium: 3
+	+ Polonicum: 2
+	+ Radicicola: 2
+	+ Freii: 2
+	+ Flavigenum: 2
+	+ Griseofulvum: 2
+
+Tất cả nấm đều được nuôi cấy trong môi trường CYA

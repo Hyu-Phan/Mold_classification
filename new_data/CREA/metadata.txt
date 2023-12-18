@@ -1,0 +1,16 @@
+- Tổng số lượng ảnh: 54
+- Có 12 nấm nhiều hơn 1 ảnh : 
+	+ Griseofulvum: 2
+	+ Entromorphobium: 2
+	+ Radicicola: 2
+	+ Eupenicillium Crustaceum: 2
+	+ Tricolor: 2
+	+ Nordicum: 2
+	+ Polonicum: 2
+	+ Nalgiovense: 3
+	+ Mononematosum: 2
+	+ Formosanum: 2
+	+ Freii: 2
+	+ Flavigenum: 2
+
+- Có 4 nấm không được nuôi cấy trong môi trường CREA: Digitatum, Italicum, Ulaiense, Venetum
